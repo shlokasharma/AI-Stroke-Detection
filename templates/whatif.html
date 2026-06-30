@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>What-If – AI Stroke Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .navbar { position:sticky; top:0; z-index:100; background:rgba(13,17,23,0.95); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); padding:0 40px; height:60px; display:flex; align-items:center; justify-content:space-between; }
+        .nav-brand { font-family:'DM Serif Display',serif; font-size:18px; color:var(--text); display:flex; align-items:center; gap:10px; }
+        .nav-brand span { color:var(--accent); }
+        .nav-links { display:flex; align-items:center; gap:6px; }
+        .nav-link { padding:7px 14px; border-radius:8px; font-size:13px; font-weight:500; color:var(--muted); text-decoration:none; transition:background 0.2s,color 0.2s; }
+        .nav-link:hover { background:var(--surface); color:var(--text); }
+        .nav-link.active { background:rgba(88,166,255,0.1); color:#58a6ff; }
+        .nav-user { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); }
+        .nav-user .avatar { width:32px; height:32px; background:rgba(224,92,92,0.15); border:1px solid rgba(224,92,92,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; }
+        .logout-btn { padding:6px 12px; border-radius:8px; font-size:12px; color:var(--muted); text-decoration:none; border:1px solid var(--border); transition:all 0.2s; }
+        .logout-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .page-wrap { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+        .page-header { margin-bottom:32px; }
+        .page-header h2 { font-family:'DM Serif Display',serif; font-size:32px; font-weight:400; color:var(--text); }
+        .page-header h2 em { color:#58a6ff; font-style:italic; }
+        .page-header p { color:var(--muted); font-size:14px; margin-top:8px; }
+
+        .whatif-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:36px; margin-bottom:24px; }
+        .section-title { font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; color:var(--text); margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+        .section-title .icon { width:32px; height:32px; background:rgba(88,166,255,0.1); border:1px solid rgba(88,166,255,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; }
+
+        .whatif-intro { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.7; }
+        .whatif-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; margin-bottom:24px; }
+        @media(min-width:640px) { .whatif-grid { grid-template-columns:repeat(3,1fr); } }
+
+        .slider-field { display:flex; flex-direction:column; gap:8px; }
+        .slider-field label { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; align-items:center; }
+        .slider-field label span { font-family:'DM Serif Display',serif; font-size:15px; color:#58a6ff; letter-spacing:0; text-transform:none; }
+
+        input[type="range"] { -webkit-appearance:none; appearance:none; width:100%; height:4px; background:var(--border); border-radius:4px; outline:none; cursor:pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#58a6ff; cursor:pointer; transition:transform 0.15s; box-shadow:0 0 6px rgba(88,166,255,0.4); }
+        input[type="range"]::-webkit-slider-thumb:hover { transform:scale(1.2); }
+
+        .whatif-toggles { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:24px; }
+        @media(min-width:640px) { .whatif-toggles { grid-template-columns:repeat(3,1fr); } }
+
+        .toggle-field { display:flex; flex-direction:column; gap:7px; }
+        .toggle-field label { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+        .toggle-field select { background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; padding:10px 12px; width:100%; outline:none; transition:border-color 0.2s; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b949e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; background-color:var(--surface2); padding-right:32px; }
+        .toggle-field select:focus { border-color:#58a6ff; box-shadow:0 0 0 3px rgba(88,166,255,0.12); }
+
+        .simulate-btn { width:100%; padding:14px; background:#1f4068; border:1px solid #58a6ff; color:#58a6ff; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:background 0.2s,box-shadow 0.2s,transform 0.1s; box-shadow:0 4px 16px rgba(88,166,255,0.15); }
+        .simulate-btn:hover { background:#264d7e; box-shadow:0 6px 24px rgba(88,166,255,0.3); transform:translateY(-1px); }
+        .simulate-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+        .reset-link { font-size:12px; color:var(--muted); text-align:right; cursor:pointer; display:block; margin-top:-16px; margin-bottom:20px; text-decoration:underline; text-underline-offset:3px; }
+        .reset-link:hover { color:#58a6ff; }
+        .whatif-hint { font-size:11px; color:var(--muted); text-align:center; margin-top:10px; opacity:0.7; }
+
+        .delta-summary { display:flex; align-items:center; justify-content:center; gap:24px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px 24px; margin-bottom:20px; flex-wrap:wrap; }
+        .delta-item { text-align:center; }
+        .delta-item .delta-label { font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+        .delta-item .delta-val { font-family:'DM Serif Display',serif; font-size:22px; }
+        .delta-item .delta-val.baseline { color:#e05c5c; }
+        .delta-item .delta-val.scenario { color:#58a6ff; }
+        .delta-item .delta-val.positive { color:#e05c5c; }
+        .delta-item .delta-val.negative { color:#3fb950; }
+        .delta-divider { width:1px; height:40px; background:var(--border); }
+
+        .whatif-graph-wrap { background:var(--surface2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-top:20px; }
+        .whatif-graph-wrap img { width:100%; display:block; }
+
+        .whatif-loading { text-align:center; padding:30px; display:none; }
+        .whatif-loading p { color:var(--muted); font-size:13px; margin-top:12px; }
+        .spinner { display:inline-block; width:20px; height:20px; border:2px solid rgba(88,166,255,0.3); border-top:2px solid #58a6ff; border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">🧠 AI <span>Stroke</span> Detection</div>
+    <div class="nav-links">
+        <a href="/dashboard"   class="nav-link">Dashboard</a>
+        <a href="/input"       class="nav-link">New Prediction</a>
+        <a href="/xai"         class="nav-link">XAI</a>
+        <a href="/whatif-page" class="nav-link active">What-If</a>
+        <a href="/metrics"     class="nav-link">Metrics</a>
+    </div>
+    <div class="nav-user">
+        <div class="avatar">👤</div>
+        <span>{{ user }}</span>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</nav>
+
+<div class="page-wrap">
+    <div class="page-header">
+        <h2>What-If <em>Simulation</em></h2>
+        <p>Simulate how lifestyle changes affect stroke risk over 24 months.</p>
+    </div>
+
+    {% if result %}
+    <div class="whatif-card">
+        <div class="section-title">
+            <div class="icon">🔬</div>
+            Risk Simulation Panel
+        </div>
+
+        <p class="whatif-intro">
+            Adjust the sliders and toggles to simulate how lifestyle changes would affect this patient's
+            stroke risk over 24 months. The ML model recalculates a new projection and compares it
+            against the current baseline.
+        </p>
+
+        <div class="whatif-grid">
+            <div class="slider-field">
+                <label>BMI <span id="bmi-val">—</span></label>
+                <input type="range" id="wi-bmi" min="15" max="50" step="0.5" value="25">
+            </div>
+            <div class="slider-field">
+                <label>Glucose (mg/dL) <span id="glucose-val">—</span></label>
+                <input type="range" id="wi-glucose" min="55" max="300" step="1" value="100">
+            </div>
+        </div>
+
+        <span class="reset-link" id="reset-sliders">↺ Reset to original values</span>
+
+        <div class="whatif-toggles">
+            <div class="toggle-field">
+                <label>Hypertension</label>
+                <select id="wi-hypertension">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+            <div class="toggle-field">
+                <label>Heart Disease</label>
+                <select id="wi-heart_disease">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+            <div class="toggle-field">
+                <label>Smoking Status</label>
+                <select id="wi-smoking_status">
+                    <option value="never smoked">Never Smoked</option>
+                    <option value="formerly smoked">Formerly Smoked</option>
+                    <option value="smokes">Smokes</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="simulate-btn" id="run-whatif-btn" onclick="runWhatIf()">
+            ⚡ Run What-If Simulation
+        </button>
+        <p class="whatif-hint">The model projects risk 24 months into the future using your modified parameters.</p>
+
+        <div class="whatif-loading" id="whatif-loading">
+            <div class="spinner"></div>
+            <p>Running ML simulation…</p>
+        </div>
+
+        <div id="whatif-results" style="display:none;">
+            <div class="delta-summary">
+                <div class="delta-item">
+                    <div class="delta-label">Baseline (24 mo)</div>
+                    <div class="delta-val baseline" id="d-baseline">—</div>
+                </div>
+                <div class="delta-divider"></div>
+                <div class="delta-item">
+                    <div class="delta-label">Scenario (24 mo)</div>
+                    <div class="delta-val scenario" id="d-scenario">—</div>
+                </div>
+                <div class="delta-divider"></div>
+                <div class="delta-item">
+                    <div class="delta-label">Change</div>
+                    <div class="delta-val" id="d-delta">—</div>
+                </div>
+            </div>
+            <div class="whatif-graph-wrap">
+                <img id="whatif-graph-img" src="" alt="What-If Graph">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PATIENT_DATA = {{ result.patient_data_json | safe }};
+        const bmiSlider     = document.getElementById("wi-bmi");
+        const glucoseSlider = document.getElementById("wi-glucose");
+        const bmiVal        = document.getElementById("bmi-val");
+        const glucoseVal    = document.getElementById("glucose-val");
+
+        bmiSlider.value     = PATIENT_DATA.bmi;
+        glucoseSlider.value = PATIENT_DATA.avg_glucose_level;
+        document.getElementById("wi-hypertension").value   = PATIENT_DATA.hypertension;
+        document.getElementById("wi-heart_disease").value  = PATIENT_DATA.heart_disease;
+        document.getElementById("wi-smoking_status").value = PATIENT_DATA.smoking_status;
+
+        function updateSliderLabels() {
+            bmiVal.textContent     = parseFloat(bmiSlider.value).toFixed(1);
+            glucoseVal.textContent = parseFloat(glucoseSlider.value).toFixed(0);
+        }
+        bmiSlider.addEventListener("input",     updateSliderLabels);
+        glucoseSlider.addEventListener("input", updateSliderLabels);
+        updateSliderLabels();
+
+        document.getElementById("reset-sliders").addEventListener("click", () => {
+            bmiSlider.value     = PATIENT_DATA.bmi;
+            glucoseSlider.value = PATIENT_DATA.avg_glucose_level;
+            document.getElementById("wi-hypertension").value   = PATIENT_DATA.hypertension;
+            document.getElementById("wi-heart_disease").value  = PATIENT_DATA.heart_disease;
+            document.getElementById("wi-smoking_status").value = PATIENT_DATA.smoking_status;
+            updateSliderLabels();
+            document.getElementById("whatif-results").style.display = "none";
+        });
+
+        async function runWhatIf() {
+            const btn = document.getElementById("run-whatif-btn");
+            btn.disabled = true; btn.textContent = "Simulating…";
+            document.getElementById("whatif-loading").style.display = "block";
+            document.getElementById("whatif-results").style.display = "none";
+
+            const whatifParams = {
+                bmi:               parseFloat(bmiSlider.value),
+                avg_glucose_level: parseFloat(glucoseSlider.value),
+                hypertension:      parseInt(document.getElementById("wi-hypertension").value),
+                heart_disease:     parseInt(document.getElementById("wi-heart_disease").value),
+                smoking_status:    document.getElementById("wi-smoking_status").value
+            };
+
+            try {
+                const res  = await fetch("/whatif", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ patient_data:PATIENT_DATA, whatif_params:whatifParams }) });
+                const data = await res.json();
+                if (data.error) { alert("Error: " + data.error); return; }
+
+                document.getElementById("d-baseline").textContent = data.baseline_end + "%";
+                document.getElementById("d-scenario").textContent = data.whatif_end   + "%";
+                const deltaEl = document.getElementById("d-delta");
+                const isGood  = data.delta < 0;
+                deltaEl.textContent = (isGood ? "▼ " : "▲ ") + Math.abs(data.delta) + "%";
+                deltaEl.className   = "delta-val " + (isGood ? "negative" : "positive");
+                document.getElementById("whatif-graph-img").src = "/static/" + data.graph + "?t=" + Date.now();
+                document.getElementById("whatif-results").style.display = "block";
+            } catch(err) {
+                alert("Request failed: " + err.message);
+            } finally {
+                document.getElementById("whatif-loading").style.display = "none";
+                btn.disabled = false; btn.textContent = "⚡ Run What-If Simulation";
+            }
+        }
+    </script>
+
+    {% else %}
+    <div class="card" style="text-align:center; padding:60px;">
+        <div style="font-size:48px; margin-bottom:16px;">🔬</div>
+        <p style="color:var(--muted); margin-bottom:20px;">No prediction yet. Run a prediction first.</p>
+        <a href="/input" style="display:inline-block; padding:12px 28px; background:var(--accent); color:#fff; border-radius:10px; text-decoration:none; font-weight:600;">Go to Input</a>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>

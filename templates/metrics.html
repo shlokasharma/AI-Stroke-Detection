@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Metrics – AI Stroke Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .navbar { position:sticky; top:0; z-index:100; background:rgba(13,17,23,0.95); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); padding:0 40px; height:60px; display:flex; align-items:center; justify-content:space-between; }
+        .nav-brand { font-family:'DM Serif Display',serif; font-size:18px; color:var(--text); display:flex; align-items:center; gap:10px; }
+        .nav-brand span { color:var(--accent); }
+        .nav-links { display:flex; align-items:center; gap:6px; }
+        .nav-link { padding:7px 14px; border-radius:8px; font-size:13px; font-weight:500; color:var(--muted); text-decoration:none; transition:background 0.2s,color 0.2s; }
+        .nav-link:hover { background:var(--surface); color:var(--text); }
+        .nav-link.active { background:rgba(224,92,92,0.1); color:var(--accent); }
+        .nav-user { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); }
+        .nav-user .avatar { width:32px; height:32px; background:rgba(224,92,92,0.15); border:1px solid rgba(224,92,92,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; }
+        .logout-btn { padding:6px 12px; border-radius:8px; font-size:12px; color:var(--muted); text-decoration:none; border:1px solid var(--border); transition:all 0.2s; }
+        .logout-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .page-wrap { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+        .page-header { margin-bottom:32px; }
+        .page-header h2 { font-family:'DM Serif Display',serif; font-size:32px; font-weight:400; color:var(--text); }
+        .page-header h2 em { color:var(--accent); font-style:italic; }
+        .page-header p { color:var(--muted); font-size:14px; margin-top:8px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">🧠 AI <span>Stroke</span> Detection</div>
+    <div class="nav-links">
+        <a href="/dashboard"   class="nav-link">Dashboard</a>
+        <a href="/input"       class="nav-link">New Prediction</a>
+        <a href="/xai"         class="nav-link">XAI</a>
+        <a href="/whatif-page" class="nav-link">What-If</a>
+        <a href="/metrics"     class="nav-link active">Metrics</a>
+    </div>
+    <div class="nav-user">
+        <div class="avatar">👤</div>
+        <span>{{ user }}</span>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</nav>
+
+<div class="page-wrap">
+    <div class="page-header">
+        <h2>Model <em>Performance</em> Metrics</h2>
+        <p>Evaluation results across all trained models.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <div class="icon">📊</div>
+            Best Model Summary
+        </div>
+
+        {% if metrics %}
+        {% set best = metrics | list | first %}
+        <div class="metrics-grid">
+            <div class="metric-cell">
+                <div class="metric-label">Model</div>
+                <div class="metric-value" style="font-size:14px; font-family:'DM Sans',sans-serif; font-weight:600;">{{ best }}</div>
+            </div>
+            <div class="metric-cell">
+                <div class="metric-label">ROC-AUC</div>
+                <div class="metric-value good">{{ (metrics[best].ROC_AUC * 100) | round(1) }}%</div>
+            </div>
+            <div class="metric-cell">
+                <div class="metric-label">Accuracy</div>
+                <div class="metric-value">{{ (metrics[best].Accuracy * 100) | round(1) }}%</div>
+            </div>
+            <div class="metric-cell">
+                <div class="metric-label">Recall</div>
+                <div class="metric-value">{{ (metrics[best].Recall * 100) | round(1) }}%</div>
+            </div>
+            <div class="metric-cell">
+                <div class="metric-label">F1 Score</div>
+                <div class="metric-value">{{ (metrics[best].F1 * 100) | round(1) }}%</div>
+            </div>
+        </div>
+
+        <p class="suggestions-title" style="margin-top:28px;">All Models Comparison</p>
+        <table class="models-table">
+            <thead>
+                <tr>
+                    <th>Model</th><th>Accuracy</th><th>Precision</th>
+                    <th>Recall</th><th>F1 Score</th><th>ROC-AUC</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, m in metrics.items() %}
+                <tr>
+                    <td>{{ name }}{% if loop.first %}<span class="best-badge">Best</span>{% endif %}</td>
+                    <td>{{ (m.Accuracy  * 100) | round(1) }}%</td>
+                    <td>{{ (m.Precision * 100) | round(1) }}%</td>
+                    <td>{{ (m.Recall    * 100) | round(1) }}%</td>
+                    <td>{{ (m.F1        * 100) | round(1) }}%</td>
+                    <td>{{ (m.ROC_AUC   * 100) | round(1) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:var(--muted); font-size:14px;">Metrics unavailable. Please retrain the model.</p>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard – AI Stroke Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(13,17,23,0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-brand {
+            font-family: 'DM Serif Display', serif; font-size: 18px;
+            color: var(--text); display: flex; align-items: center; gap: 10px;
+        }
+        .nav-brand span { color: var(--accent); }
+        .nav-links { display: flex; align-items: center; gap: 6px; }
+        .nav-link {
+            padding: 7px 14px; border-radius: 8px; font-size: 13px;
+            font-weight: 500; color: var(--muted); text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .nav-link:hover { background: var(--surface); color: var(--text); }
+        .nav-link.active { background: rgba(224,92,92,0.1); color: var(--accent); }
+        .nav-user {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13px; color: var(--muted);
+        }
+        .nav-user .avatar {
+            width: 32px; height: 32px; background: rgba(224,92,92,0.15);
+            border: 1px solid rgba(224,92,92,0.3); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .logout-btn {
+            padding: 6px 12px; border-radius: 8px; font-size: 12px;
+            color: var(--muted); text-decoration: none; border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .page-wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px 80px; }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, rgba(224,92,92,0.08), rgba(88,166,255,0.05));
+            border: 1px solid var(--border); border-radius: 16px;
+            padding: 32px 36px; margin-bottom: 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 20px;
+        }
+        .welcome-banner h2 {
+            font-family: 'DM Serif Display', serif; font-size: 26px;
+            font-weight: 400; color: var(--text);
+        }
+        .welcome-banner h2 span { color: var(--accent); }
+        .welcome-banner p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+        .new-prediction-btn {
+            padding: 12px 24px; background: var(--accent); color: #fff;
+            border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            box-shadow: 0 4px 16px rgba(224,92,92,0.3);
+            transition: background 0.2s, transform 0.1s;
+        }
+        .new-prediction-btn:hover { background: #c94f4f; transform: translateY(-1px); }
+
+        .quick-stats {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; padding: 24px 20px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .stat-card:hover { border-color: rgba(224,92,92,0.3); transform: translateY(-2px); }
+        .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+        .stat-value { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--text); }
+        .stat-value.red    { color: #e05c5c; }
+        .stat-value.green  { color: #3fb950; }
+        .stat-value.blue   { color: #58a6ff; }
+        .stat-value.orange { color: #f0a500; }
+
+        .result-section {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 36px; margin-bottom: 24px;
+        }
+        .section-title {
+            font-family: 'DM Serif Display', serif; font-size: 20px;
+            font-weight: 400; color: var(--text); margin-bottom: 24px;
+            padding-bottom: 16px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-title .icon {
+            width: 32px; height: 32px; background: rgba(224,92,92,0.1);
+            border: 1px solid rgba(224,92,92,0.2); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 15px;
+        }
+
+        .no-result {
+            text-align: center; padding: 60px 20px;
+            color: var(--muted); font-size: 15px;
+        }
+        .no-result .big-icon { font-size: 48px; margin-bottom: 16px; }
+        .no-result a {
+            display: inline-block; margin-top: 20px; padding: 12px 28px;
+            background: var(--accent); color: #fff; border-radius: 10px;
+            text-decoration: none; font-weight: 600; font-size: 14px;
+            box-shadow: 0 4px 16px rgba(224,92,92,0.3);
+        }
+
+        .action-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px; margin-top: 24px;
+        }
+        .action-card {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; text-decoration: none;
+            color: var(--text); transition: border-color 0.2s, transform 0.2s;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .action-card:hover { border-color: rgba(88,166,255,0.4); transform: translateY(-2px); }
+        .action-card .a-icon { font-size: 24px; }
+        .action-card .a-title { font-weight: 600; font-size: 14px; }
+        .action-card .a-desc { font-size: 12px; color: var(--muted); }
+
+        /* band colors */
+        .band-low      { color: #3fb950; }
+        .band-moderate { color: #f0a500; }
+        .band-high     { color: #e05c5c; }
+        .band-critical { color: #ff4040; }
+
+        .risk-bar-wrap { background: var(--surface2); border-radius: 8px; height: 8px; overflow: hidden; margin: 12px 0 20px; }
+        .risk-bar-fill { height: 100%; border-radius: 8px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+        .fill-low      { background: #3fb950; }
+        .fill-moderate { background: #f0a500; }
+        .fill-high     { background: #e05c5c; }
+        .fill-critical { background: #ff4040; }
+
+        .graph-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .graph-wrap img { width: 100%; display: block; }
+
+        .suggestions-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .suggestions-list li {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px 14px; font-size: 14px;
+        }
+        .suggestions-list li::before { content: '→'; color: var(--accent); font-weight: 600; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">🧠 AI <span>Stroke</span> Detection</div>
+    <div class="nav-links">
+        <a href="/dashboard" class="nav-link active">Dashboard</a>
+        <a href="/input"     class="nav-link">New Prediction</a>
+        <a href="/xai"       class="nav-link">XAI</a>
+        <a href="/whatif-page" class="nav-link">What-If</a>
+        <a href="/metrics"   class="nav-link">Metrics</a>
+    </div>
+    <div class="nav-user">
+        <div class="avatar">👤</div>
+        <span>{{ user }}</span>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</nav>
+
+<div class="page-wrap">
+
+    <div class="welcome-banner">
+        <div>
+            <h2>Welcome back, <span>{{ user }}</span></h2>
+            <p>AI-powered stroke risk prediction and clinical decision support.</p>
+        </div>
+        <a href="/input" class="new-prediction-btn">+ New Prediction</a>
+    </div>
+
+    {% if result %}
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+        <div class="stat-card">
+            <div class="stat-label">Stroke Risk</div>
+            <div class="stat-value {{ 'red' if result.band in ['High','Critical'] else 'orange' if result.band == 'Moderate' else 'green' }}">
+                {{ result.prediction }}%
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Risk Band</div>
+            <div class="stat-value {{ 'red' if result.band in ['High','Critical'] else 'orange' if result.band == 'Moderate' else 'green' }}">
+                {{ result.band }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Patient Age</div>
+            <div class="stat-value blue">{{ result.patient_data.age | int }} yrs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">BMI</div>
+            <div class="stat-value {{ 'orange' if result.patient_data.bmi > 25 else 'green' }}">
+                {{ result.patient_data.bmi }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Glucose</div>
+            <div class="stat-value {{ 'red' if result.patient_data.avg_glucose_level > 140 else 'green' }}">
+                {{ result.patient_data.avg_glucose_level | int }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Result -->
+    <div class="result-section">
+        <div class="section-title">
+            <div class="icon">🩺</div>
+            Risk Assessment Result
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+            <div style="font-family:'DM Serif Display',serif; font-size:22px;" class="band-{{ result.band | lower }}">
+                {{ result.band }} Risk
+            </div>
+            <div style="font-family:'DM Serif Display',serif; font-size:48px;" class="band-{{ result.band | lower }}">
+                {{ result.prediction }}%
+            </div>
+        </div>
+
+        <div class="risk-bar-wrap">
+            <div class="risk-bar-fill fill-{{ result.band | lower }}" style="width: {{ [result.prediction, 100] | min }}%"></div>
+        </div>
+
+        {% if result.graph %}
+        <div class="graph-wrap">
+            <img src="{{ url_for('static', filename=result.graph) }}" alt="Digital Twin Projection">
+        </div>
+        {% endif %}
+
+        <p style="font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;">
+            Clinical Recommendations
+        </p>
+        <ul class="suggestions-list">
+            {% for tip in result.suggestions %}
+            <li>{{ tip }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Action links -->
+        <div class="action-grid">
+            <a href="/xai" class="action-card">
+                <div class="a-icon">🧠</div>
+                <div class="a-title">Explainable AI</div>
+                <div class="a-desc">See why the model gave this score</div>
+            </a>
+            <a href="/whatif-page" class="action-card">
+                <div class="a-icon">🔬</div>
+                <div class="a-title">What-If Simulation</div>
+                <div class="a-desc">Simulate lifestyle changes</div>
+            </a>
+            <a href="/metrics" class="action-card">
+                <div class="a-icon">📊</div>
+                <div class="a-title">Model Metrics</div>
+                <div class="a-desc">View model performance</div>
+            </a>
+            <a href="/input" class="action-card">
+                <div class="a-icon">➕</div>
+                <div class="a-title">New Prediction</div>
+                <div class="a-desc">Enter new patient data</div>
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+
+    <div class="result-section">
+        <div class="no-result">
+            <div class="big-icon">🩺</div>
+            <p>No prediction yet. Enter patient data to get started.</p>
+            <a href="/input">Start New Prediction</a>
+        </div>
+    </div>
+
+    {% endif %}
+
+</div>
+</body>
+</html>

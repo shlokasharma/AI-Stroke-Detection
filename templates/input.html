@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Input – AI Stroke Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(13,17,23,0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-brand { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); display: flex; align-items: center; gap: 10px; }
+        .nav-brand span { color: var(--accent); }
+        .nav-links { display: flex; align-items: center; gap: 6px; }
+        .nav-link { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; transition: background 0.2s, color 0.2s; }
+        .nav-link:hover { background: var(--surface); color: var(--text); }
+        .nav-link.active { background: rgba(224,92,92,0.1); color: var(--accent); }
+        .nav-user { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+        .nav-user .avatar { width: 32px; height: 32px; background: rgba(224,92,92,0.15); border: 1px solid rgba(224,92,92,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .logout-btn { padding: 6px 12px; border-radius: 8px; font-size: 12px; color: var(--muted); text-decoration: none; border: 1px solid var(--border); transition: all 0.2s; }
+        .logout-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .page-wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+        .page-header { margin-bottom: 32px; animation: fadeDown 0.5s ease both; }
+        .page-header h2 { font-family: 'DM Serif Display', serif; font-size: 32px; font-weight: 400; color: var(--text); }
+        .page-header h2 em { color: var(--accent); font-style: italic; }
+        .page-header p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+        @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">🧠 AI <span>Stroke</span> Detection</div>
+    <div class="nav-links">
+        <a href="/dashboard"   class="nav-link">Dashboard</a>
+        <a href="/input"       class="nav-link active">New Prediction</a>
+        <a href="/xai"         class="nav-link">XAI</a>
+        <a href="/whatif-page" class="nav-link">What-If</a>
+        <a href="/metrics"     class="nav-link">Metrics</a>
+    </div>
+    <div class="nav-user">
+        <div class="avatar">👤</div>
+        <span>{{ user }}</span>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</nav>
+
+<div class="page-wrap">
+    <div class="page-header">
+        <h2>Patient <em>Health</em> Details</h2>
+        <p>Fill in the patient data below to generate a stroke risk prediction.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <div class="icon">👤</div>
+            Patient Information
+        </div>
+        <form method="POST" class="form-grid">
+            <div class="field">
+                <label>Gender</label>
+                <select name="gender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Age</label>
+                <input type="number" name="age" placeholder="e.g. 45" required>
+            </div>
+            <div class="field">
+                <label>Hypertension</label>
+                <select name="hypertension">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Heart Disease</label>
+                <select name="heart_disease">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Ever Married</label>
+                <select name="ever_married">
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Work Type</label>
+                <select name="work_type">
+                    <option value="Private">Private</option>
+                    <option value="Self-employed">Self-employed</option>
+                    <option value="Govt_job">Government</option>
+                    <option value="Never_worked">Never Worked</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Residence Type</label>
+                <select name="Residence_type">
+                    <option value="Urban">Urban</option>
+                    <option value="Rural">Rural</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Avg Glucose Level</label>
+                <input type="number" step="0.1" name="glucose" placeholder="e.g. 120.5" required>
+            </div>
+            <div class="field">
+                <label>BMI</label>
+                <input type="number" step="0.1" name="bmi" placeholder="e.g. 24.5" required>
+            </div>
+            <div class="field">
+                <label>Smoking Status</label>
+                <select name="smoking_status">
+                    <option value="never smoked">Never Smoked</option>
+                    <option value="formerly smoked">Formerly Smoked</option>
+                    <option value="smokes">Smokes</option>
+                </select>
+            </div>
+            <div class="field full-width">
+                <button type="submit" class="submit-btn">Predict Stroke Risk</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

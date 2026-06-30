@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login – AI Stroke Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0d1117; --surface: #161b22; --surface2: #1c2330;
+            --border: #30363d; --accent: #e05c5c; --text: #e6edf3; --muted: #8b949e;
+        }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(224,92,92,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(224,92,92,0.03) 1px, transparent 1px);
+            background-size: 40px 40px; pointer-events: none;
+        }
+        .login-box {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 420px;
+            position: relative; z-index: 1;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: fadeUp 0.5s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .login-logo {
+            text-align: center; margin-bottom: 32px;
+        }
+        .login-logo .icon {
+            width: 56px; height: 56px; background: rgba(224,92,92,0.1);
+            border: 1px solid rgba(224,92,92,0.3); border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; margin: 0 auto 16px;
+        }
+        .login-logo h1 {
+            font-family: 'DM Serif Display', serif; font-size: 22px;
+            font-weight: 400; color: var(--text);
+        }
+        .login-logo p {
+            font-size: 13px; color: var(--muted); margin-top: 6px;
+        }
+        .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+        .field label {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--muted);
+        }
+        .field input {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif;
+            font-size: 14px; padding: 12px 14px; width: 100%; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(224,92,92,0.12);
+        }
+        .login-btn {
+            width: 100%; padding: 14px; background: var(--accent);
+            color: #fff; border: none; border-radius: 10px;
+            font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(224,92,92,0.3); margin-top: 8px;
+        }
+        .login-btn:hover { background: #c94f4f; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(224,92,92,0.45); }
+        .login-btn:active { transform: translateY(0); }
+        .error-msg {
+            background: rgba(224,92,92,0.1); border: 1px solid rgba(224,92,92,0.3);
+            color: #e05c5c; font-size: 13px; padding: 10px 14px;
+            border-radius: 8px; margin-bottom: 18px; text-align: center;
+        }
+        .demo-hint {
+            text-align: center; font-size: 12px; color: var(--muted);
+            margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);
+        }
+        .demo-hint span { color: var(--accent); font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="login-logo">
+            <div class="icon">🧠</div>
+            <h1>AI Stroke Detection</h1>
+            <p>Clinical Decision Support System</p>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="field">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Enter username" required>
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="login-btn">Sign In →</button>
+        </form>
+
+        <p class="demo-hint">Demo mode — any credentials work.<br><span>For research purposes only.</span></p>
+    </div>
+</body>
+</html>
