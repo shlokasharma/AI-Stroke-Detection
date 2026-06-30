@@ -56,7 +56,7 @@ AI-Stroke-Detection/
 Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/AI-Stroke-Detection.git
+git clone https://github.com/shlokasharma/AI-Stroke-Detection.git
 ```
 
 Move into the project directory
